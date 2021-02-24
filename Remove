@@ -1,0 +1,164 @@
+#!/bin/bash
+
+#Title
+#	Remove Contacts
+
+#Author
+#	Ian Mullins  
+#	Student Number: 20034981
+
+#Description
+#	Sub menu, allows user search for and remove a contact 
+	
+
+function dashLines
+{
+echo "----------------------------------------------"
+}
+
+function highlight
+{
+echo -e "====== $* ======"
+}
+
+clear
+
+showMenuOptions(){
+highlight Contact Delete Menu
+echo -e "\nSelect an option from the menu below"
+dashLines
+echo "1) Search and delete by name or alias"
+echo "2) Return all contacts and delete by id"
+echo "0) Exit"
+echo "Option:"
+}
+
+exitMethod(){
+dashLines
+echo "Returning to main menu...hit enter to continue"
+read pause
+exit
+}
+
+
+
+showMenuOptions
+read option
+
+#---goodInput
+#Validates numeric input
+#Applied to 'if', 'else' statement
+#If not goodInput, display error and rerun command
+#If is goodInput proceed to 'else' 
+goodInput='^[0-9]+$'
+if ! [[ $option =~ $goodInput ]] ; then
+   echo -e "\nError: Issue with input...try again" >&2; sleep 1 && exec "$0"
+elif [[ -z "${option}" ]]; then
+   echo "No Input, try again!"
+else
+touch ./addressBook.txt && touch ./temp.txt
+#Menu logic to run until option selected is 0
+while [ $option -ne 0 ]
+do
+    case $option in
+    	#Option allows user to search for contact via text input
+        1)
+		read -p "Enter Contact Name: " input
+		#preforms grep on addressbook file and returns line count based on search criteria
+        #sets count variable to line count result
+    	count=$(grep -nis $input ./addressBook.txt | wc -l)
+    	if [ $count -eq 0 ]
+        	then
+            	dashLines 
+            	echo -e "----------------\nNo one found on file with the name : $input"
+        	else
+        		#If any contacts returned from search criteria, prompt user to select contact for delete using designated line number
+            	dashLines
+            	echo -e "\n----------------\n$count customers found matching name: $input"
+            	grep -nis  $input ./addressBook.txt | awk '{print "----------------\n"  $1 " : " $2 " : " $3 " : " $4}'
+            	echo -e "\nEnter line number you wish to delete!\n(Or press the 0 to cancel)"
+   	        	read deleteOption
+				if [ $deleteOption -eq 0 ]; then
+					echo -e "\nCancelling delete Operation..."
+					sleep 1
+					exit
+				fi
+	        #Confirm user wishes to delete contact found from search
+	        #If yes, remove contact from addressBook
+	        #Else cancel the remove
+        	echo -e "\nAre you sure you want to delete contact on line $deleteOption? y/n"
+        	read confirm
+                	case $confirm in
+                        	[yY] | [yY][Ee][Ss] )
+                                	sed -i $deleteOption\d ./addressBook.txt
+                                    #added to fix bug in add/remove addressbook data integrity
+	       							cat addressBook.txt > ./temp.txt
+                                	printf "\nDeleting Customer Details...\n"
+                                	;;
+                        	[nN] | [nN][Oo] )
+                                	echo -e "\nCancelling delete operation..."
+                                	;;
+                        	*) echo -e "\nInvalid input"
+                                	;;
+                	esac
+	
+    	fi
+		exitMethod
+    	;;
+        2)
+        #Displays all contacts and allows user to delete via line number designated to each contact
+		dashLines
+        echo -e "All Customers"
+        dashLines
+		cat -n ./addressBook.txt
+        echo -e "\nEnter line number you wish to delete!\n(Or press the 0 to cancel!)"
+        read deleteOption
+        if [ $deleteOption -eq 0 ]; then
+             echo -e "\nCancelling delete Operation..."
+             sleep 1
+             exit
+        fi
+		#Checks user input for numeric value
+		if ! [[ $deleteOption =~ $goodInput ]] ; then
+   			echo -e "\nError: Issue with input" >&2; exit 1
+		else
+		echo -e "\nAre you sure you want to delete contact on line $deleteOption? y/n"
+        #Prompts user to confirm if they wish to delete elected contact from addressBook
+        #Removes user from addressbook
+        #Else if user elect no, cancel the operation
+        read confirm
+       	case $confirm in
+        		[yY] | [yY][Ee][Ss] )
+	       			sed -i $deleteOption\d ./addressBook.txt
+	       			#added to fix bug in add/remove addressbook data integrity
+	       			cat addressBook.txt > ./temp.txt
+               		printf "\nDeleting Customer Details...\n"
+               		;;
+        		[nN] | [nN][Oo] )
+               			echo -e "\nCancelling delete operation..."
+               			sleep 1
+				exit 1
+               			;;
+        		*) echo -e "\nInvalid input"
+               			;;
+		esac
+		fi
+		exitMethod
+		;;
+		0)
+		dashLines
+		echo -e "\nReturning to main menu..."
+		sleep 3
+        	exit
+		;;
+        *)
+        	clear
+        	dashLines
+        	highlight Option $option is Unknown, try again
+        	dashLines
+        	sleep 1
+        	exec "$0"
+    	esac
+		read $option
+done
+fi

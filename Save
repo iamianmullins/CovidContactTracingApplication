@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#Title
+#	Save Script
+
+#Author
+#	Ian Mullins  
+#	Student Number: 20034981
+
+#Description
+#	Save script
+#	Commits addressbook changes to backup
+#	Can be executed manually or when user exits the program
+
+now=$(date +%d-%m-%Y)
+touch ./addressBook.txt && touch ./addressBookBkup.txt
+cat ./addressBook.txt > ./addressBookBkup.txt
+cp ./addressBook.txt ./backups/$now.txt

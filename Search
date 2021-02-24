@@ -1,0 +1,92 @@
+#!/bin/bash
+
+#Search Contacts
+
+function dashLines
+{
+echo "----------------------------------------------"
+}
+
+function highlight
+{
+echo -e "====== $* ======"
+}
+
+clear
+
+showMenuOptions(){
+highlight Contact Search Menu
+echo -e "\nSelect an option from the menu below"
+dashLines
+echo "1) Search by key word"
+echo "2) Return all contacts"
+echo "0) Exit"
+echo "Option:"
+}
+
+
+exitMethod(){
+dashLines
+echo "Returning to main menu...hit enter to continue"
+read pause
+exit
+}
+
+
+showMenuOptions
+read option
+
+#---goodInput
+#Validates numeric input
+#Applied to 'if', 'else' statement
+#If not goodInput, display error and rerun command
+#If is goodInput proceed to 'else' 
+goodInput='^[0-9]+$'
+if ! [[ $option =~ $goodInput ]] ; then
+   echo -e "\nError: Issue with input...try again" >&2; sleep 1 && exec "$0"
+else
+touch ./addressBook.txt
+while [ $option -ne 0 ]
+do
+    case $option in
+    	#Option 1 allows user to enter search criteria to identify a particular contact or group of contacts
+        1)
+        echo -e "Enter search criteria"
+		read input
+		count=$(grep -nis $input ./addressBook.txt | wc -l)
+		if [ $count -eq 0 ]
+		then
+			dashLines 
+			echo -e "----------------\nNo one found on file with the search : $input"
+		else
+			dashLines
+			echo -e "\n----------------\n$count customers found with search: $input"
+			grep -is  $input ./addressBook.txt | awk -F":" '{print "----------------\nName: " $1 "\nAddress: "  $2 "\nNumber: " $3 "\nEmail: " $4}'
+		fi
+		exitMethod
+        	;;
+
+        2)
+        #Option 2 returns the full list of customers
+		dashLines
+        echo -e "Full customer List"
+        dashLines
+		cat -n ./addressBook.txt
+		exitMethod
+		;;
+		0)
+        	echo "Exiting..."
+		sleep 1 
+		exitMethod
+        	;;
+        	*)
+        	clear
+        	dashLines
+        	highlight Option $option is Unknown, try again
+        	dashLines
+        	sleep 2
+        	exec "$0"
+	
+    esac
+done
+fi

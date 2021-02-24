@@ -1,0 +1,107 @@
+#!/bin/bash
+
+#Title
+#	Main Menu
+
+#Author
+#	Ian Mullins  
+#	Student Number: 20034981
+
+#Description
+#	Linux based software tool created to support contact log tracing in the hospitality industry
+#	This script supports primary menu
+
+function dashLines
+{
+	echo "----------------------------------------------"
+}
+
+#Highlight function for menu title
+function highlight
+{
+	echo -e "====== $* ======"
+}
+
+dateTime=`date "+%d/%m/%Y"`
+
+#cowsay generates ASCII pictures of a cow with a message, used for branding in this instance
+clear
+dashLines
+cowsay "Hi $USER! Welcome to the CoWvid-19 contact tracing app $dateTime"
+dashLines
+
+
+function showMenuOptions(){
+	highlight MAIN MENU
+	echo -e "\nSelect an option from the menu below"
+	dashLines
+	echo "1) Add new contact"
+	echo "2) Remove an existing contact"
+	echo "3) Search for a contact"
+	echo "4) E-mail contact(s)"
+	echo "5) Backup current state"
+	echo "6) Rollback changes since last save"
+	echo "0) Exit"
+	echo "Option:"
+}
+
+showMenuOptions
+read option
+
+#---goodInput
+#Validates numeric input
+#Applied to 'if', 'else' statement
+#If not goodInput, display error and rerun command
+#If is goodInput proceed to 'else'  
+goodInput='^[0-9]+$'
+
+if ! [[ $option =~ $goodInput ]] ; then
+   echo -e "\nError: Issue with input...try again" >&2; sleep 1 && exec "$0"
+else
+while [ $option -ne 0 ]
+do
+    case $option in
+	1)
+	./AddContact
+	exec "$0"
+	;;
+	2)
+	./Remove
+	exec "$0"
+	;;
+	3)
+	./Search
+	exec "$0"
+	;;
+	4)
+	./emailContact
+	exec "$0"
+	;;
+        5)
+        ./Save
+	echo "Saving..."
+	sleep 1
+        exec "$0"
+        ;;
+	6)
+	./Rollback
+	echo "Rolling back changes..."
+	sleep 1
+	exec "$0"
+	;;
+	0)
+	exit
+	echo "Exiting"
+	;;
+	*)
+	clear
+	dashLines
+	highlight Option $option is Unknown, try again
+	dashLines
+	sleep 1
+	exec "$0"
+	;;
+    esac
+done
+./Save
+fi

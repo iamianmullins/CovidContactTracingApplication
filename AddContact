@@ -1,0 +1,87 @@
+#!/bin/bash
+
+#Title
+#	Add Contact
+
+#Author
+#	Ian Mullins  
+#	Student Number: 20034981
+
+#Description
+#	prompts user to input new customer details, name, address, phone, email
+
+function dashLines
+{
+echo "----------------------------------------------"
+}
+
+function highlight
+{
+	echo -e "====== $* ======"
+}
+
+clear
+dashLines
+highlight Add New Contact Details
+dashLines
+
+
+while read -p "Enter Contact Name: " name; do
+# -z validates empty variable, prompts input until valid input recieved 
+     if [[ -z "${name}" ]]; then
+          echo "No Input, try again!"
+     else
+          break
+     fi
+done
+while read -p "Enter Contact Address: " address; do
+# -z validates empty variable, prompts input until valid input recieved 
+     if [[ -z "${address}" ]]; then
+          echo "No Input, try again!"
+     else
+          break
+     fi
+done
+
+while read -p "Enter Contact Phone: " phone; do
+# -z validates empty variable, prompts input until valid input recieved 
+     if [[ -z "${phone}" ]]; then
+          echo "No Input, try again!"
+     else
+          break
+     fi
+done
+
+while read -p "Enter Contact Email: " email; do
+# -z validates empty variable, prompts input until valid input recieved 
+     if [[ -z "${email}" ]]; then
+          echo "No Input, try again!"
+     else
+          break
+     fi
+done
+
+
+#printf displays input back to the user
+#user prompted to validate details are correct
+#If user accepts via case Y/Yes, new user details are appended to addressBook
+#temp file used to maintain alphabetical contact order
+#If user does not accept N/No, user is redirected to main menu
+printf "\nName: $name \nAddress: $address \nPhone: $phone \nEmail: $email\n"
+read -p "Please confirm the details above are correct:y/n?" confirm
+case $confirm in
+        [yY] | [yY][Ee][Ss] )
+                touch ./temp.txt && echo -e "$name  :$address  :$phone  :$email" >> ./temp.txt
+                touch ./addressBook.txt && sort -u ./temp.txt > addressBook.txt 
+				printf "\nAdding $name to Contact List...\n"
+		sleep 1
+                ;;
+        [nN] | [nN][Oo] )
+                printf "\nCancelling new contact details..."
+				sleep 1
+                exit 1
+                ;;
+        *) printf "\nInvalid input, returing to main menu..."
+				sleep 1
+            	;;
+esac

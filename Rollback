@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#Title
+#	Rollback Script
+
+#Author
+#	Ian Mullins  
+#	Student Number: 20034981
+
+#Description
+#	Allows rollback to previous state
+#	Pushes address Book backup file to addressBook.txt
+#	Is only executed manually via the main menu Rollback option
+
+touch ./addressBook.txt && touch ./addressBookBkup.txt
+cat ./addressBookBkup.txt > ./addressBook.txt

@@ -1,0 +1,163 @@
+#!/bin/bash
+
+#Title
+#	Email Contacts
+
+#Author
+#	Ian Mullins  
+#	Student Number: 20034981
+
+#Description
+#	Sub menu, allows user to email existing contact/contacts or all contacts
+
+function dashLines
+{
+	echo "----------------------------------------------"
+}
+
+function highlight
+{
+	echo -e "====== $* ======"
+}
+
+clear
+
+showMenuOptions(){
+	highlight Email Customer Menu
+	echo -e "\nSelect an option from the menu below"
+	dashLines
+	echo "1) Search for recipient(s) by name"
+	echo "2) Email all contacts"
+	echo "0) Exit"
+	echo "Option:"
+}
+
+exitMethod(){
+	dashLines
+	echo "Returning to main menu...hit enter to continue"
+	read pause
+	exit
+}
+
+
+
+showMenuOptions
+read option
+
+#---goodInput
+#Validates numeric input
+#Applied to 'if', 'else' statement
+#If not goodInput, display error and rerun command
+#If is goodInput proceed to 'else' 
+goodInput='^[0-9]+$'
+if ! [[ $option =~ $goodInput ]] ; then
+   echo -e "\nError: Issue with input...try again" >&2; sleep 1 && exec "$0"
+else
+touch ./addressBook.txt
+#Menu logic to run until option selected is 0
+while [ $option -ne 0 ]
+do
+    case $option in
+        1)
+		read -p "Enter Contact Name: " input
+        #preforms grep on addressbook file and returns line count based on search criteria
+        #sets count variable to line count result
+        count=$(grep -nis $input ./addressBook.txt | wc -l)
+        if [ $count -eq 0 ]
+        #If no results returned from search criteria, inform user
+        then
+                dashLines 
+                echo -e "----------------\nNo one found on file with the search : $input"
+        else
+        #else display contacts found with search criteria and write emails found to mailing list
+            dashLines
+            echo -e "\n----------------\n$count contacts found with search: $input"
+            grep -nis  $input ./addressBook.txt | awk -F":" '{print "----------------\n"  $1 "	"  $2 "	"  $3 " " $4 " " $5}' 
+            touch ./mailingList.txt && grep -is  $input ./addressBook.txt | awk -F":" '{print $4}' > ./mailingList.txt
+            echo -e "\nAre you sure you want to email all contacts above? y/n"
+	        read confirm
+	        #Confirm user wishes to email contacts found from search
+	        #proceed to read email body from user and send to all emails in current mailing list
+        	case $confirm in
+               	[yY] | [yY][Ee][Ss] )
+				    grep -is  $input ./addressBook.txt | awk -F":" '{print $4}' > mailingList.txt
+					dashLines
+					cat ./mailingList.txt
+					dashLines
+               		echo -e "\nEmailing Contacts...\n"
+                    subject="CovidTracking"
+                    echo "Enter email content:"
+                    read body
+	                while read email; 
+        	        do
+                	echo $body | mail -s $subject $email
+                    done < ./mailingList.txt
+                  	echo $body | mail -s $subject "compsys@compsys-virtualbox"
+                   	echo "Sent..."
+                   	sleep 1
+	   			;;
+                [nN] | [nN][Oo] )
+                    echo "Cancelling email operation, please refine your search..."
+                    sleep 1
+				;;
+                *) echo "Invalid input"
+					sleep 1
+                ;;
+                esac
+
+        fi
+		exitMethod
+        ;;
+        #write all contacts email addresses to mailingList file
+        2)
+        dashLines
+        echo -e "Email All Contacts"
+        dashLines
+        touch ./mailingList.txt && awk -F":" '{print $ 4F}' ./addressBook.txt > ./mailingList.txt 
+        echo -e "Are you sure you want to email all customers:y/n?"
+        read confirm       
+        #Confirm user wishes to email all contacts
+	    #proceed to read email body from user and sent to all emails found in current mailing list
+        case $confirm in
+                [yY] | [yY][Ee][Ss] )
+                        printf "\nEmailing Customers...\n"
+                        subject="CovidTracking"
+                        echo "Enter email content:"
+                        read body
+						while read email; 
+						do
+                        	echo $body | mail -s $subject $email
+                        	done < ./mailingList.txt
+                        echo $body | mail -s $subject "compsys@compsys-virtualbox"
+						echo "Sent..."
+                        sleep 1
+                ;;
+                [nN] | [nN][Oo] )
+                    echo "Cancelling email operation, please refine your search..."
+                    sleep 1
+				;;
+                *) echo "Invalid input"
+				   	    sleep 1
+                ;;
+        esac
+        exitMethod
+        ;;
+
+		0)
+		dashLines
+		echo "Returning to main menu..."
+		sleep 1
+        	exit
+		;;
+        *)
+        	clear
+        	dashLines
+        	highlight Option $option is Unknown, try again
+        	dashLines
+        	sleep 2
+        	exec "$0"
+		;;
+    	esac
+		read $option
+done
+fi
